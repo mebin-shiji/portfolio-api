@@ -93,9 +93,6 @@ publish/
 # Dotnet watch
 **/tmp/
 
-# Entity Framework
-Migrations/
-
 # JetBrains Rider
 .idea/
 
