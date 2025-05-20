@@ -23,7 +23,7 @@ namespace portfolio_api.Health
                 var canConnect = await _dbContext.Database.CanConnectAsync(cts.Token);
                 if (!canConnect)
                 {
-                    return HealthCheckResult.Unhealthy("Could not connect to PostgreSQL database");
+                    return HealthCheckResult.Unhealthy();
                 }
                 _logger.LogInformation("Test 1: Basic connection test succeeded.");
 
@@ -33,21 +33,17 @@ namespace portfolio_api.Health
 
                 _logger.LogInformation("Test 2: PostgreSQL database query executed successfully.");
 
-                return HealthCheckResult.Healthy("PostgreSQL database is healthy",
-                    new Dictionary<string, object>
-                    {
-                    { "Response Time (ms)", DateTime.UtcNow.Millisecond }
-                    });
+                return HealthCheckResult.Healthy();
             }
             catch (OperationCanceledException)
             {
                 _logger.LogWarning("Database health check timed out after {TimeoutSeconds} seconds.", TimeoutSeconds);
-                return HealthCheckResult.Degraded("Database health check timed out");
+                return HealthCheckResult.Degraded();
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Database health check failed with message: {Message}", ex.Message);
-                return HealthCheckResult.Unhealthy("Database is not reachable", ex);
+                return HealthCheckResult.Unhealthy();
             }
         }
     }

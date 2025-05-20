@@ -1,4 +1,5 @@
 using FluentValidation;
+using HealthChecks.UI.Client;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.EntityFrameworkCore;
 using portfolio_api.Features.AuditLog.Create;
@@ -9,7 +10,6 @@ using portfolio_api.Infrastructure.HostedServices;
 using portfolio_api.Infrastructure.Persistance;
 using portfolio_api.Infrastructure.Storage;
 using Serilog;
-using System.Text.Json;
 
 Log.Logger = new LoggerConfiguration()
     .MinimumLevel.Debug()
@@ -55,26 +55,7 @@ var app = builder.Build();
 
 app.MapHealthChecks("/_health", new HealthCheckOptions
 {
-    ResponseWriter = async (context, report) =>
-    {
-        context.Response.ContentType = "application/json";
-
-        var response = new
-        {
-            status = report.Status.ToString(),
-            checks = report.Entries.Select(e => new
-            {
-                name = e.Key,
-                status = e.Value.Status.ToString(),
-                description = e.Value.Description,
-                data = e.Value.Data
-            }),
-            totalDuration = report.TotalDuration
-        };
-
-        await context.Response.WriteAsync(
-            JsonSerializer.Serialize(response, new JsonSerializerOptions { WriteIndented = true }));
-    }
+    ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse
 });
 
 // Map Endpoints

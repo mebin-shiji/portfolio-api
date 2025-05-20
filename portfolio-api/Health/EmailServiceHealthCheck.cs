@@ -31,12 +31,12 @@ namespace portfolio_api.Health
                 
                 _logger.LogInformation("SMTP server is reachable.");
 
-                return HealthCheckResult.Healthy("SMTP server is reachable");
+                return HealthCheckResult.Healthy();
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "SMTP server is not reachable. Health check failed with message: {Message}", ex.Message);
-                return HealthCheckResult.Unhealthy("Failed to connect to SMTP server", ex);
+                return HealthCheckResult.Unhealthy();
             }
         }
     }
