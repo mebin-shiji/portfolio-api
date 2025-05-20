@@ -34,6 +34,8 @@ internal sealed class SendMailCommandValidator : AbstractValidator<SendMailComma
             .WithMessage("Body cannot be empty.");
 
         RuleForEach(x => x.Attachments)
+            .NotNull()
+            .WithMessage("Attachment cannot be null.")
             .SetValidator(new AttachmentValidator());
 
         RuleFor(x => x)
@@ -47,11 +49,13 @@ internal sealed class AttachmentValidator : AbstractValidator<Attachment>
     public AttachmentValidator()
     {
         RuleFor(x => x.Filename)
+            .NotNull()
             .NotEmpty()
             .WithMessage("Filename cannot be empty.");
 
         RuleFor(x => x.Url)
             .Cascade(CascadeMode.Stop)
+            .NotNull()
             .NotEmpty()
             .WithMessage("URL is required.")
             .Must(uri => Uri.TryCreate(uri, UriKind.Absolute, out var _))

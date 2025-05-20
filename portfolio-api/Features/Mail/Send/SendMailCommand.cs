@@ -1,19 +1,19 @@
 ﻿namespace portfolio_api.Features.Mail.Send;
 
-public class SendMailCommand
+public sealed record SendMailCommand
 {
-    public string? From { get; set; } = null;
-    public string? FromName { get; set; } = null;
-    public string? To { get; set; } = null;
-    public string? ToName { get; set; } = null;
-    public required string Subject { get; set; }
-    public required string Body { get; set; }
-    public bool IsHtml { get; set; } = false;
-    public List<Attachment> Attachments { get; set; } = [];
+    public string? From { get; init; } = null;
+    public string? FromName { get; init; } = null;
+    public string? To { get; init; } = null;
+    public string? ToName { get; init; } = null;
+    public string Subject { get; init; } = default!;
+    public string Body { get; init; } = default!;
+    public bool IsHtml { get; init; } = false;
+    public List<Attachment> Attachments { get; init; } = [];
 }
 
-public class Attachment
-{
-    public required string Filename { get; set; }
-    public required string Url { get; set; }
-}
+public sealed record Attachment
+(
+    string Filename,
+    string Url
+);

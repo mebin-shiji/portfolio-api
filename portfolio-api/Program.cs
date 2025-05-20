@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.EntityFrameworkCore;
 using portfolio_api.Features.AuditLog.Create;
 using portfolio_api.Features.Mail.Send;
+using portfolio_api.Features.Upload.CreateSasToken;
 using portfolio_api.Health;
 using portfolio_api.Infrastructure.Email;
 using portfolio_api.Infrastructure.HostedServices;
@@ -42,6 +43,7 @@ builder.Services.Configure<AzureStorageOptions>(builder.Configuration.GetSection
 builder.Services.AddValidatorsFromAssemblyContaining<CreateAuditLogCommandValidator>();
 builder.Services.AddValidatorsFromAssemblyContaining<SendMailCommandValidator>();
 builder.Services.AddValidatorsFromAssemblyContaining<AzureOptionsValidator>();
+builder.Services.AddValidatorsFromAssemblyContaining<CreateSasTokenCommandValidator>();
 
 // Register Services
 builder.Services.AddSingleton<IAzureStorageService, AzureStorageService>();
