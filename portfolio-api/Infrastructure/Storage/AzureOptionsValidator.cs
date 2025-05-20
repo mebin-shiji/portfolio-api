@@ -1,0 +1,20 @@
+﻿using FluentValidation;
+
+namespace portfolio_api.Infrastructure.Storage
+{
+    internal sealed class AzureOptionsValidator : AbstractValidator<AzureStorageOptions>
+    {
+        public AzureOptionsValidator() 
+        { 
+            RuleFor(x => x.AccountName)
+                .NotNull()
+                .NotEmpty()
+                .WithMessage("Account name is required.");
+
+            RuleFor(x => x.AccountKey)
+                .NotNull()
+                .NotEmpty()
+                .WithMessage("Account key is required.");
+        }
+    }
+}
