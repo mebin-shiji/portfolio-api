@@ -17,10 +17,8 @@ public static class CreateAuditLogMapper
             Page = command.Page,
             Description = command.Description,
             MetaData = command.MetaData,
-            UserAgent = command.UserAgent,
             IsSuccess = command.IsSuccess,
-            IpAddress = IPAddress.Parse(command.IpAddress),
-            CreatedAt = command.CreatedAt ?? DateTime.UtcNow
+            CreatedAt = DateTime.UtcNow
         };
     }
 }

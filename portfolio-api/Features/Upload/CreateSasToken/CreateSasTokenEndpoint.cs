@@ -14,10 +14,8 @@ namespace portfolio_api.Features.Upload.CreateSasToken
             app.MapGet("/upload/createSasToken", CreateSasToken).WithName("CreateSasToken").WithTags("Upload");
         }
 
-        public static async Task<Results<Ok<CreateSasTokenResponse>, ProblemHttpResult, ValidationProblem>> CreateSasToken([FromQuery] string containerName, [FromServices] IValidator<CreateSasTokenCommand> validator, [FromServices] IStorageService storageService, HttpContext context, IConfiguration configuration)
+        public static Results<Ok<CreateSasTokenResponse>, ProblemHttpResult, ValidationProblem> CreateSasToken([FromQuery] string containerName, [FromServices] IValidator<CreateSasTokenCommand> validator, [FromServices] IStorageService storageService, HttpContext context, IConfiguration configuration)
         {
-            var ct = context.RequestAborted;
-
             // Validate the container name
             Dictionary<string, string[]> errors = [];
             if (containerName is null)
@@ -35,7 +33,7 @@ namespace portfolio_api.Features.Upload.CreateSasToken
 
             try
             {
-                var sasToken = storageService.GenerateContainerSasToken(containerName, Expiry);
+                var sasToken = storageService.GenerateContainerSasToken(containerName!, Expiry);
                 return TypedResults.Ok(new CreateSasTokenResponse(sasToken));
             }
             catch (Exception)

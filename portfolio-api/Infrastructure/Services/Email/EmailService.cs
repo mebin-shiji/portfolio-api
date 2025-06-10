@@ -13,7 +13,7 @@ public class EmailService(IOptions<EmailSettings> emailSettingsOptions, ILogger<
     private readonly ILogger<EmailService> _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     private readonly IStorageService _storageService = storageService ?? throw new ArgumentNullException(nameof(storageService), "Storage service cannot be null.");
 
-    public async Task SendEmailAsync(List<SendMailCommand> mails)
+    public async Task SendEmailAsync(List<SendMailCommand> mails, CancellationToken cancellationToken)
     {
         if (mails is null || mails.Count == 0)
         {
@@ -28,8 +28,8 @@ public class EmailService(IOptions<EmailSettings> emailSettingsOptions, ILogger<
             {
                 _logger.LogInformation("Preparing email to: {Recipient}", mail.To ?? _emailSettings.DefaultToEmail);
 
-                var message = await CreateMimeMessageAsync(mail);
-                messageTasks.Add(SendMessageAsync(message));
+                var message = await CreateMimeMessageAsync(mail, cancellationToken);
+                messageTasks.Add(SendMessageAsync(message, cancellationToken));
             }
 
             await Task.WhenAll(messageTasks);
@@ -42,7 +42,7 @@ public class EmailService(IOptions<EmailSettings> emailSettingsOptions, ILogger<
         }
     }
 
-    private async Task<MimeMessage> CreateMimeMessageAsync(SendMailCommand mail)
+    private async Task<MimeMessage> CreateMimeMessageAsync(SendMailCommand mail, CancellationToken cancellationToken)
     {
         var message = new MimeMessage();
 
@@ -65,7 +65,7 @@ public class EmailService(IOptions<EmailSettings> emailSettingsOptions, ILogger<
         {
             foreach (var attachment in mail.Attachments)
             {
-                var fileBytes = await _storageService.DownloadBlobAsBytesAsync(attachment.Url);
+                var fileBytes = await _storageService.DownloadBlobAsBytesAsync(attachment.Url, cancellationToken);
                 bodyBuilder.Attachments.Add(attachment.Filename, fileBytes);
                 _logger.LogDebug("Added attachment: {Filename}", attachment.Filename);
             }
@@ -75,7 +75,7 @@ public class EmailService(IOptions<EmailSettings> emailSettingsOptions, ILogger<
         return message;
     }
 
-    private async Task SendMessageAsync(MimeMessage message)
+    private async Task SendMessageAsync(MimeMessage message, CancellationToken cancellationToken)
     {
         using var client = new SmtpClient();
 
@@ -86,18 +86,19 @@ public class EmailService(IOptions<EmailSettings> emailSettingsOptions, ILogger<
             await client.ConnectAsync(
                 _emailSettings.SmtpServer,
                 _emailSettings.SmtpPort,
-                _emailSettings.EnableSsl ? SecureSocketOptions.SslOnConnect : SecureSocketOptions.StartTls);
+                _emailSettings.EnableSsl ? SecureSocketOptions.SslOnConnect : SecureSocketOptions.StartTls,
+                cancellationToken);
 
             if (!string.IsNullOrWhiteSpace(_emailSettings.UserName) && !string.IsNullOrWhiteSpace(_emailSettings.Password))
             {
                 _logger.LogDebug("Authenticating SMTP user {UserName}", _emailSettings.UserName);
-                await client.AuthenticateAsync(_emailSettings.UserName, _emailSettings.Password);
+                await client.AuthenticateAsync(_emailSettings.UserName, _emailSettings.Password, cancellationToken);
             }
 
-            await client.SendAsync(message);
+            await client.SendAsync(message, cancellationToken);
             _logger.LogInformation("Email sent to {Recipient}", string.Join(", ", message.To.Select(r => r.ToString())));
 
-            await client.DisconnectAsync(true);
+            await client.DisconnectAsync(true, cancellationToken);
         }
         catch (Exception ex)
         {

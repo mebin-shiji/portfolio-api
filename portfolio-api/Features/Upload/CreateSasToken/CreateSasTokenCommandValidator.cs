@@ -2,7 +2,7 @@
 
 namespace portfolio_api.Features.Upload.CreateSasToken
 {
-    internal sealed class CreateSasTokenCommandValidator : AbstractValidator<CreateSasTokenCommand>
+    public sealed class CreateSasTokenCommandValidator : AbstractValidator<CreateSasTokenCommand>
     {
         public CreateSasTokenCommandValidator()
         {

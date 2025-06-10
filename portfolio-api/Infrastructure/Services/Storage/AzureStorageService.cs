@@ -15,15 +15,12 @@ public class AzureStorageService(ILogger<AzureStorageService> logger, IOptions<S
         try
         {
             var credential = new StorageSharedKeyCredential(_options.AccountName, _options.AccountKey);
-            var sasBuilder = new BlobSasBuilder
+            var sasBuilder = new BlobSasBuilder(BlobContainerSasPermissions.Write | BlobContainerSasPermissions.Create | BlobContainerSasPermissions.Add, DateTimeOffset.UtcNow.Add(expiry))
             {
                 BlobContainerName = containerName,
-                Resource = "c", 
-                StartsOn = DateTimeOffset.UtcNow.Subtract(TimeSpan.FromMinutes(5)),
-                ExpiresOn = DateTimeOffset.UtcNow.Add(expiry)
+                Resource = "c", // 'c' for container
+                StartsOn = DateTimeOffset.UtcNow.Subtract(TimeSpan.FromMinutes(5))
             };
-
-            sasBuilder.SetPermissions(BlobSasPermissions.Write | BlobSasPermissions.Create | BlobSasPermissions.Add);
 
             var sasToken = sasBuilder.ToSasQueryParameters(credential).ToString();
             return sasToken;
@@ -35,7 +32,7 @@ public class AzureStorageService(ILogger<AzureStorageService> logger, IOptions<S
         }
     }
 
-    public async Task<byte[]> DownloadBlobAsBytesAsync(string blobUri)
+    public async Task<byte[]> DownloadBlobAsBytesAsync(string blobUri, CancellationToken cancellationToken)
     {
         if (!Uri.TryCreate(blobUri, UriKind.Absolute, out var uri))
         {
@@ -47,7 +44,7 @@ public class AzureStorageService(ILogger<AzureStorageService> logger, IOptions<S
         try
         {
             using var memoryStream = new MemoryStream();
-            await blobClient.DownloadToAsync(memoryStream);
+            await blobClient.DownloadToAsync(memoryStream, cancellationToken);
             return memoryStream.ToArray();
         }
         catch (RequestFailedException ex)

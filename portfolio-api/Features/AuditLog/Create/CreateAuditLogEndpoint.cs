@@ -11,10 +11,8 @@ public static class CreateAuditLogEndpoint
         app.MapPost("/auditlog", CreateAuditLog).WithName("CreateAuditLog").WithTags("AuditLogs");
     }
 
-    public static async Task<Results<Created, ProblemHttpResult, ValidationProblem>> CreateAuditLog([FromBody] CreateAuditLogCommand request, [FromServices] IValidator<CreateAuditLogCommand> validator, [FromServices] ICreateAuditLogHandler handler, HttpContext context)
+    public static async Task<Results<Created, ProblemHttpResult, ValidationProblem>> CreateAuditLog([FromBody] CreateAuditLogCommand request, [FromServices] IValidator<CreateAuditLogCommand> validator, [FromServices] ICreateAuditLogHandler handler, HttpContext context, CancellationToken ct)
     {
-        var ct = context.RequestAborted;
-
         var validationResult = await validator.ValidateAsync(request, ct);
         if (!validationResult.IsValid)
         {
@@ -23,7 +21,7 @@ public static class CreateAuditLogEndpoint
 
         try
         {
-            await handler.Handle(request, ct);
+            await handler.Handle(request, context, ct);
             return TypedResults.Created();
         }
         catch (Exception)

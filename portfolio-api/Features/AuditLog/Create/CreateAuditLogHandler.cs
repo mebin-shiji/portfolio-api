@@ -4,7 +4,7 @@ namespace portfolio_api.Features.AuditLog.Create;
 
 public interface ICreateAuditLogHandler
 {
-    Task Handle(CreateAuditLogCommand request, CancellationToken ct);
+    Task Handle(CreateAuditLogCommand request, HttpContext context, CancellationToken ct);
 }
 
 public class CreateAuditLogHandler(AppDbContext dbContext, ILogger<CreateAuditLogHandler> logger) : ICreateAuditLogHandler
@@ -12,11 +12,13 @@ public class CreateAuditLogHandler(AppDbContext dbContext, ILogger<CreateAuditLo
     private readonly AppDbContext _dbContext = dbContext;
     private readonly ILogger<CreateAuditLogHandler> _logger = logger;
 
-    public async Task Handle(CreateAuditLogCommand request, CancellationToken cancellationToken)
+    public async Task Handle(CreateAuditLogCommand request, HttpContext context, CancellationToken cancellationToken)
     {
-        _logger.LogInformation("Received audit log request for event: {EventType} from IP: {IpAddress} with description: {Description}", request.EventType, request.IpAddress, request.Description);
+        _logger.LogInformation("Received audit log request for event: {EventType} with description: {Description}", request.EventType, request.Description);
 
         var auditLog = request.ToEntity();
+        auditLog.IpAddress = context.Connection.RemoteIpAddress;
+        auditLog.UserAgent = context.Request.Headers.UserAgent.ToString();
 
         _dbContext.AuditLog.Add(auditLog);
         await _dbContext.SaveChangesAsync(cancellationToken);

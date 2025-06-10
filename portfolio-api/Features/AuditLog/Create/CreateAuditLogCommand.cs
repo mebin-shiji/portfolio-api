@@ -6,8 +6,5 @@ public sealed record CreateAuditLogCommand
     string? Page,
     string? Description,
     object? MetaData,
-    string? UserAgent,
-    bool IsSuccess,
-    string IpAddress,
-    DateTime? CreatedAt
+    bool IsSuccess
 );

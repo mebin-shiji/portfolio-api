@@ -3,5 +3,5 @@
 public interface IStorageService
 {
     string GenerateContainerSasToken(string containerName, TimeSpan expiry);
-    Task<byte[]> DownloadBlobAsBytesAsync(string blobUri);
+    Task<byte[]> DownloadBlobAsBytesAsync(string blobUri, CancellationToken cancellationToken);
 }

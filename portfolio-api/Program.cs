@@ -15,7 +15,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Host.UseSerilog();
 
 // Add all application services
-builder.Services.AddApplicationConfiguration(builder.Configuration);
+builder.Services.AddApplicationServiceConfigurations(builder.Configuration);
 
 var app = builder.Build();
 
