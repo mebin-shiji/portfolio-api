@@ -14,20 +14,13 @@ public class CreateAuditLogHandler(AppDbContext dbContext, ILogger<CreateAuditLo
 
     public async Task Handle(CreateAuditLogCommand request, CancellationToken cancellationToken)
     {
-        _logger.LogInformation("Received audit log request for action: {Action} from IP: {IpAddress}", request.Action, request.IpAddress);
+        _logger.LogInformation("Received audit log request for event: {EventType} from IP: {IpAddress} with description: {Description}", request.EventType, request.IpAddress, request.Description);
 
-        var auditLog = new AuditLog
-        {
-            Action = Enum.Parse<ActionType>(request.Action),
-            Description = request.Description,
-            CreatedAt = request.CreatedAt ?? DateTime.UtcNow,
-            Data = request.Data,
-            IpAddress = request.IpAddress
-        };
+        var auditLog = request.ToEntity();
 
         _dbContext.AuditLog.Add(auditLog);
         await _dbContext.SaveChangesAsync(cancellationToken);
 
-        _logger.LogInformation("Successfully created audit log for action: {Action} at {Timestamp}", auditLog.Action, auditLog.CreatedAt);
+        _logger.LogInformation("Successfully created audit log for event: {EventType} at {Timestamp}", auditLog.EventType, auditLog.CreatedAt);
     }
 }

@@ -1,10 +1,10 @@
 ﻿using FluentValidation;
 
-namespace portfolio_api.Infrastructure.Storage
+namespace portfolio_api.Infrastructure.Services.Storage
 {
-    internal sealed class AzureOptionsValidator : AbstractValidator<AzureStorageOptions>
+    public sealed class StorageOptionsValidator : AbstractValidator<StorageOptions>
     {
-        public AzureOptionsValidator() 
+        public StorageOptionsValidator() 
         { 
             RuleFor(x => x.AccountName)
                 .NotNull()

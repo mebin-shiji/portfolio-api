@@ -4,41 +4,33 @@ using Azure.Storage.Blobs;
 using Azure.Storage.Sas;
 using Microsoft.Extensions.Options;
 
-namespace portfolio_api.Infrastructure.Storage;
+namespace portfolio_api.Infrastructure.Services.Storage;
 
-public interface IAzureStorageService
-{
-    string GenerateBlobSasToken(string containerName, string blobName, TimeSpan expiry);
-    Task<byte[]> DownloadBlobAsBytesAsync(string blobUri);
-}
-
-public class AzureStorageService(ILogger<AzureStorageService> logger, IOptions<AzureStorageOptions> options) : IAzureStorageService
+public class AzureStorageService(ILogger<AzureStorageService> logger, IOptions<StorageOptions> options) : IStorageService
 {
     private readonly ILogger<AzureStorageService> _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-    private readonly AzureStorageOptions _options = options.Value ?? throw new ArgumentNullException(nameof(options));
-    public string GenerateBlobSasToken(string containerName, string blobName, TimeSpan expiry)
+    private readonly StorageOptions _options = options.Value ?? throw new ArgumentNullException(nameof(options));
+    public string GenerateContainerSasToken(string containerName, TimeSpan expiry)
     {
         try
         {
             var credential = new StorageSharedKeyCredential(_options.AccountName, _options.AccountKey);
-
             var sasBuilder = new BlobSasBuilder
             {
                 BlobContainerName = containerName,
-                BlobName = blobName,
-                Resource = "b",
-                StartsOn = DateTimeOffset.UtcNow.Subtract(TimeSpan.FromMinutes(15)),
+                Resource = "c", 
+                StartsOn = DateTimeOffset.UtcNow.Subtract(TimeSpan.FromMinutes(5)),
                 ExpiresOn = DateTimeOffset.UtcNow.Add(expiry)
             };
 
-            sasBuilder.SetPermissions(BlobSasPermissions.Write | BlobSasPermissions.Create);
+            sasBuilder.SetPermissions(BlobSasPermissions.Write | BlobSasPermissions.Create | BlobSasPermissions.Add);
 
             var sasToken = sasBuilder.ToSasQueryParameters(credential).ToString();
             return sasToken;
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error generating SAS token for blob: {BlobName}", blobName);
+            _logger.LogError(ex, "Error generating container SAS token for container: {ContainerName}", containerName);
             throw;
         }
     }

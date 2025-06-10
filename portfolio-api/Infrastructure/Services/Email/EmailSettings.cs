@@ -1,4 +1,4 @@
-﻿namespace portfolio_api.Infrastructure.Email;
+﻿namespace portfolio_api.Infrastructure.Services.Email;
 
 public class EmailSettings
 {

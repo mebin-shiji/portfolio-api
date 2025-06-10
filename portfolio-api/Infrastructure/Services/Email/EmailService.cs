@@ -3,20 +3,15 @@ using MailKit.Security;
 using Microsoft.Extensions.Options;
 using MimeKit;
 using portfolio_api.Features.Mail.Send;
-using portfolio_api.Infrastructure.Storage;
+using portfolio_api.Infrastructure.Services.Storage;
 
-namespace portfolio_api.Infrastructure.Email;
+namespace portfolio_api.Infrastructure.Services.Email;
 
-public interface IEmailService
-{
-    public Task SendEmailAsync(List<SendMailCommand> mails);
-}
-
-public class EmailService(IOptions<EmailSettings> emailSettingsOptions, ILogger<EmailService> logger, IAzureStorageService storageService) : IEmailService
+public class EmailService(IOptions<EmailSettings> emailSettingsOptions, ILogger<EmailService> logger, IStorageService storageService) : IEmailService
 {
     private readonly EmailSettings _emailSettings = emailSettingsOptions?.Value ?? throw new ArgumentNullException(nameof(emailSettingsOptions), "Email settings options cannot be null.");
     private readonly ILogger<EmailService> _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-    private readonly IAzureStorageService _storageService = storageService ?? throw new ArgumentNullException(nameof(storageService), "Storage service cannot be null.");
+    private readonly IStorageService _storageService = storageService ?? throw new ArgumentNullException(nameof(storageService), "Storage service cannot be null.");
 
     public async Task SendEmailAsync(List<SendMailCommand> mails)
     {

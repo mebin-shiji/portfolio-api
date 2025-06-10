@@ -1,7 +1,7 @@
 ﻿using MailKit.Net.Smtp;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Options;
-using portfolio_api.Infrastructure.Email;
+using portfolio_api.Infrastructure.Services.Email;
 
 namespace portfolio_api.Health
 {

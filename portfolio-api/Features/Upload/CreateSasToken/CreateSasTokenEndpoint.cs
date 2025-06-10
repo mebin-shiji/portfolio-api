@@ -1,6 +1,8 @@
 ﻿using FluentValidation;
 using Microsoft.AspNetCore.Http.HttpResults;
-using portfolio_api.Infrastructure.Storage;
+using Microsoft.AspNetCore.Mvc;
+using portfolio_api.Infrastructure.Services.Storage;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace portfolio_api.Features.Upload.CreateSasToken
 {
@@ -9,21 +11,31 @@ namespace portfolio_api.Features.Upload.CreateSasToken
         private static readonly TimeSpan Expiry = TimeSpan.FromMinutes(15);
         public static void MapCreateSasToken(this WebApplication app)
         {
-            app.MapPost("/upload/createSasToken", CreateSasToken).WithName("CreateSasToken").WithTags("Upload");
+            app.MapGet("/upload/createSasToken", CreateSasToken).WithName("CreateSasToken").WithTags("Upload");
         }
 
-        public static async Task<Results<Ok<CreateSasTokenResponse>, ProblemHttpResult, ValidationProblem>> CreateSasToken(CreateSasTokenCommand request, IValidator<CreateSasTokenCommand> validator, IAzureStorageService azureStorageService, HttpContext context, IConfiguration configuration)
+        public static async Task<Results<Ok<CreateSasTokenResponse>, ProblemHttpResult, ValidationProblem>> CreateSasToken([FromQuery] string containerName, [FromServices] IValidator<CreateSasTokenCommand> validator, [FromServices] IStorageService storageService, HttpContext context, IConfiguration configuration)
         {
             var ct = context.RequestAborted;
-            var validationResult = await validator.ValidateAsync(request, ct);
-            if (!validationResult.IsValid)
+
+            // Validate the container name
+            Dictionary<string, string[]> errors = [];
+            if (containerName is null)
             {
-                return TypedResults.ValidationProblem(validationResult.ToDictionary());
+                errors.Add("ContainerName", [ "Container name is required." ]);
+            }
+            if (containerName?.Length > 255)
+            {
+                errors.Add("ContainerName", ["Container name cannot exceed 255 characters."]);
+            }
+            if(errors.Count > 0)
+            {
+                return TypedResults.ValidationProblem(errors);
             }
 
             try
             {
-                var sasToken = azureStorageService.GenerateBlobSasToken(request.ContainerName ?? configuration["EmailAttachments"]!, request.BlobName, Expiry);
+                var sasToken = storageService.GenerateContainerSasToken(containerName, Expiry);
                 return TypedResults.Ok(new CreateSasTokenResponse(sasToken));
             }
             catch (Exception)

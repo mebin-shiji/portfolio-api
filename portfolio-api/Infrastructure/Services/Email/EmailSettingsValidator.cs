@@ -1,8 +1,8 @@
 ﻿using FluentValidation;
 
-namespace portfolio_api.Infrastructure.Email;
+namespace portfolio_api.Infrastructure.Services.Email;
 
-internal sealed class EmailSettingsValidator : AbstractValidator<EmailSettings>
+public sealed class EmailSettingsValidator : AbstractValidator<EmailSettings>
 {
     public EmailSettingsValidator()
     {
@@ -69,8 +69,8 @@ internal sealed class EmailSettingsValidator : AbstractValidator<EmailSettings>
 
         RuleFor(x => x)
             .Must(x =>
-                (string.IsNullOrWhiteSpace(x.UserName) && string.IsNullOrWhiteSpace(x.Password)) ||
-                (!string.IsNullOrWhiteSpace(x.UserName) && !string.IsNullOrWhiteSpace(x.Password))
+                string.IsNullOrWhiteSpace(x.UserName) && string.IsNullOrWhiteSpace(x.Password) ||
+                !string.IsNullOrWhiteSpace(x.UserName) && !string.IsNullOrWhiteSpace(x.Password)
             )
             .WithMessage("Both Username and Password must be provided if either one is specified.");
     }

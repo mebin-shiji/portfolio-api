@@ -1,4 +1,4 @@
-﻿namespace portfolio_api.Infrastructure.HostedServices;
+﻿namespace portfolio_api.Infrastructure.Services.HostedServices;
 
 public class WeeklyReportService : BackgroundService
 {

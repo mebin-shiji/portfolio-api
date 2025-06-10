@@ -1,5 +1,6 @@
 ﻿using FluentValidation;
 using Microsoft.AspNetCore.Http.HttpResults;
+using Microsoft.AspNetCore.Mvc;
 
 namespace portfolio_api.Features.AuditLog.Create;
 
@@ -10,7 +11,7 @@ public static class CreateAuditLogEndpoint
         app.MapPost("/auditlog", CreateAuditLog).WithName("CreateAuditLog").WithTags("AuditLogs");
     }
 
-    public static async Task<Results<Created, ProblemHttpResult, ValidationProblem>> CreateAuditLog(CreateAuditLogCommand request, IValidator<CreateAuditLogCommand> validator, ICreateAuditLogHandler handler, HttpContext context)
+    public static async Task<Results<Created, ProblemHttpResult, ValidationProblem>> CreateAuditLog([FromBody] CreateAuditLogCommand request, [FromServices] IValidator<CreateAuditLogCommand> validator, [FromServices] ICreateAuditLogHandler handler, HttpContext context)
     {
         var ct = context.RequestAborted;
 

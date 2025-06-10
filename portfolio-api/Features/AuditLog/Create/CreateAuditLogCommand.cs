@@ -2,9 +2,12 @@
 
 public sealed record CreateAuditLogCommand
 (
-    string Action,
+    string EventType,
+    string? Page,
     string? Description,
-    DateTime? CreatedAt,
-    object? Data,
-    string IpAddress
+    object? MetaData,
+    string? UserAgent,
+    bool IsSuccess,
+    string IpAddress,
+    DateTime? CreatedAt
 );
