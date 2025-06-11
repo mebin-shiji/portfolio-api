@@ -2,7 +2,7 @@
 
 namespace portfolio_api.Features.Mail.Send;
 
-public sealed class SendMailCommandValidator : AbstractValidator<SendMailCommand>
+internal sealed class SendMailCommandValidator : AbstractValidator<SendMailCommand>
 {
     public SendMailCommandValidator()
     {

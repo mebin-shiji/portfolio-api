@@ -2,13 +2,12 @@
 using Microsoft.EntityFrameworkCore;
 using portfolio_api.Domain.Enums;
 using portfolio_api.Features.AuditLog.Create;
-using portfolio_api.Features.Mail.Send;
-using portfolio_api.Features.Upload.CreateSasToken;
 using portfolio_api.Health;
 using portfolio_api.Infrastructure.Persistance;
 using portfolio_api.Infrastructure.Services.Email;
 using portfolio_api.Infrastructure.Services.HostedServices;
 using portfolio_api.Infrastructure.Services.Storage;
+using System.Threading.RateLimiting;
 
 namespace portfolio_api.Configurations;
 
@@ -36,7 +35,6 @@ public static class ServiceConfiguration
 
     private static IServiceCollection AddStorageService(this IServiceCollection services, IConfiguration configuration)
     {
-        // Configure and validate options
         services.AddOptions<StorageOptions>()
            .Bind(configuration.GetSection("StorageOptions"))
            .Validate<IValidator<StorageOptions>>((options, validator) =>
@@ -46,7 +44,6 @@ public static class ServiceConfiguration
            })
            .ValidateOnStart();
 
-        // Register service
         services.AddSingleton<IStorageService, AzureStorageService>();
 
         return services;
@@ -54,7 +51,6 @@ public static class ServiceConfiguration
 
     private static IServiceCollection AddEmailService(this IServiceCollection services, IConfiguration configuration)
     {
-        // Configure and validate options
         services.AddOptions<EmailSettings>()
             .Bind(configuration.GetSection("EmailSettings"))
             .Validate<IValidator<EmailSettings>>((settings, validator) =>
@@ -64,19 +60,59 @@ public static class ServiceConfiguration
             })
             .ValidateOnStart();
 
-        // Register service
         services.AddScoped<IEmailService, EmailService>();
 
         return services;
     }
 
-    private static IServiceCollection AddValidators(this IServiceCollection services)
+    private static IServiceCollection AddRateLimiting(this IServiceCollection services)
     {
-        services.AddValidatorsFromAssemblyContaining<CreateAuditLogCommandValidator>();
-        services.AddValidatorsFromAssemblyContaining<SendMailCommandValidator>();
-        services.AddValidatorsFromAssemblyContaining<CreateSasTokenCommandValidator>();
-        services.AddSingleton<IValidator<StorageOptions>, StorageOptionsValidator>();
-        services.AddSingleton<IValidator<EmailSettings>, EmailSettingsValidator>();
+        services.AddRateLimiter(options =>
+        {
+            options.AddPolicy("AuditPolicy", httpContext =>
+            
+                RateLimitPartition.GetFixedWindowLimiter(
+                    partitionKey: httpContext.Connection.RemoteIpAddress?.ToString(),
+                    factory: partitionKey => new FixedWindowRateLimiterOptions
+                    {
+                        PermitLimit = 50,
+                        Window = TimeSpan.FromMinutes(1),
+                        QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
+                        QueueLimit = 10
+                    }
+                )
+            );
+
+            options.AddPolicy("MailPolicy", httpContext =>
+
+                RateLimitPartition.GetFixedWindowLimiter(
+                    partitionKey: httpContext.Connection.RemoteIpAddress?.ToString(),
+                    factory: partitionKey => new FixedWindowRateLimiterOptions
+                    {
+                        PermitLimit = 5,
+                        Window = TimeSpan.FromMinutes(1),
+                        QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
+                        QueueLimit = 10
+                    }
+                )
+            );
+
+            options.AddPolicy("UploadPolicy", httpContext =>
+
+               RateLimitPartition.GetFixedWindowLimiter(
+                   partitionKey: httpContext.Connection.RemoteIpAddress?.ToString(),
+                   factory: partitionKey => new FixedWindowRateLimiterOptions
+                   {
+                       PermitLimit = 5,
+                       Window = TimeSpan.FromMinutes(1),
+                       QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
+                       QueueLimit = 10
+                   }
+               )
+           );
+
+            options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+        });
 
         return services;
     }
@@ -87,18 +123,21 @@ public static class ServiceConfiguration
 
     private static IServiceCollection AddOpenAPISpecification(this IServiceCollection services) => services.AddOpenApi();
 
+    private static IServiceCollection AddValidators(this IServiceCollection services) => services.AddValidatorsFromAssembly(typeof(Program).Assembly, includeInternalTypes: true);
+
     // Master method to configure all services
     public static IServiceCollection AddApplicationServiceConfigurations(this IServiceCollection services, IConfiguration configuration)
     {
-        services.AddDatabase(configuration);
-        services.AddApplicationHealthChecks();
-        services.AddValidators();
-        services.AddStorageService(configuration);
-        services.AddEmailService(configuration);
-        services.AddApplicationServices();
-        services.AddHostedServices();
-        services.AddOpenAPISpecification();
-
+        services.AddDatabase(configuration)
+            .AddApplicationHealthChecks()
+            .AddValidators()
+            .AddStorageService(configuration)
+            .AddEmailService(configuration)
+            .AddApplicationServices()
+            .AddHostedServices()
+            .AddOpenAPISpecification()
+            .AddRateLimiting();
+        
         return services;
     }
 }

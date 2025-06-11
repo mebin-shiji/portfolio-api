@@ -2,7 +2,7 @@
 
 namespace portfolio_api.Infrastructure.Services.Email;
 
-public sealed class EmailSettingsValidator : AbstractValidator<EmailSettings>
+internal sealed class EmailSettingsValidator : AbstractValidator<EmailSettings>
 {
     public EmailSettingsValidator()
     {

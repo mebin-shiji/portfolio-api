@@ -3,7 +3,7 @@ using portfolio_api.Domain.Enums;
 using System.Net;
 
 namespace portfolio_api.Features.AuditLog.Create;
-public sealed class CreateAuditLogCommandValidator : AbstractValidator<CreateAuditLogCommand>
+internal sealed class CreateAuditLogCommandValidator : AbstractValidator<CreateAuditLogCommand>
 {
     public CreateAuditLogCommandValidator()
     {

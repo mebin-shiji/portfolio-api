@@ -8,7 +8,7 @@ public static class CreateAuditLogEndpoint
 {
     public static void MapCreateAuditLog(this WebApplication app)
     {
-        app.MapPost("/auditlog", CreateAuditLog).WithName("CreateAuditLog").WithTags("AuditLogs");
+        app.MapPost("/auditlog", CreateAuditLog).WithName("CreateAuditLog").WithTags("AuditLogs").RequireRateLimiting("AuditPolicy");
     }
 
     public static async Task<Results<Created, ProblemHttpResult, ValidationProblem>> CreateAuditLog([FromBody] CreateAuditLogCommand request, [FromServices] IValidator<CreateAuditLogCommand> validator, [FromServices] ICreateAuditLogHandler handler, HttpContext context, CancellationToken ct)

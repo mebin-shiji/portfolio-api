@@ -9,7 +9,7 @@ namespace portfolio_api.Features.Mail.Send
     {
         public static void MapSendEmail(this WebApplication app)
         {
-            app.MapPost("/mail", SendEmail).WithName("SendEmail").WithTags("SendEmail");
+            app.MapPost("/mail", SendEmail).WithName("SendEmail").WithTags("SendEmail").RequireRateLimiting("MailPolicy");
         }
 
         public static async Task<Results<Created, ProblemHttpResult, ValidationProblem>> SendEmail([FromBody] SendMailCommand request, [FromServices] IValidator<SendMailCommand> validator, [FromServices] IEmailService emailService, HttpContext context, CancellationToken ct)

@@ -1,4 +1,6 @@
 using portfolio_api.Configurations;
+using portfolio_api.Configurations.Middlewares;
+using Scalar.AspNetCore;
 using Serilog;
 
 // Configure Serilog
@@ -18,6 +20,16 @@ builder.Host.UseSerilog();
 builder.Services.AddApplicationServiceConfigurations(builder.Configuration);
 
 var app = builder.Build();
+
+if (app.Environment.IsDevelopment())
+{
+    app.MapOpenApi();
+    app.MapScalarApiReference();
+}
+
+app.UseHttpsRedirection();
+app.UseRateLimiter();
+app.UseMiddleware<ApiKeyAuthMiddleware>();
 
 // Add the endpoints
 app.AddApiEndpoints();
